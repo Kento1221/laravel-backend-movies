@@ -4,49 +4,72 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest;
+use App\Http\Services\AuthService;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    /**
+     * Login user with email and password. Returns authentication token.
+     *
+     * @param UserLoginRequest $request
+     * @return \Illuminate\Http\Response
+     */
     public function login(UserLoginRequest $request)
     {
-        if (Auth::attempt($request->validated())) {
+        $token = AuthService::login(
+            $request->validated()['email'],
+            $request->validated()['password']
+        );
 
-            $user = Auth::user();
-            $token = $user->createToken('Laravel_backend_movies_API')->plainTextToken;
-
-            return response(['user' => $user, 'token' => $token]);
-        }
-
-        abort(403);
+        return $token != null
+            ? response(['token' => $token])
+            : response(null, 403);
     }
 
+    /**
+     * Login user with email and password. Returns authentication token.
+     *
+     * @param UserRegisterRequest $request
+     * @return \Illuminate\Http\Response
+     */
     public function register(UserRegisterRequest $request)
     {
-        $validated = $request->validated();
+        $token = AuthService::register(
+            $request->validated()['email'],
+            $request->validated()['password'],
+            $request->validated()['name']
+        );
 
-        $user = User::create([
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'name' => $validated['name'],
-        ]);
-        $token = $user->createToken('Laravel_backend_movies_API')->plainTextToken;
-
-        return response()->json([
-            'user' => $user,
-            'token' => $token
-        ]);
+        return response(['token' => $token]);
     }
 
+    /**
+     * Log out from current session.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function logout(Request $request)
     {
-        return $request->user()->currentAccessToken()->delete();
+        return $request
+            ->user()
+            ->currentAccessToken()
+            ->delete();
     }
 
+    /**
+     * Log out all devices assigned to the user's account and return the number of devices logged out.
+     *
+     * @param UserRegisterRequest $request
+     * @return \Illuminate\Http\Response
+     */
     public function logoutAllDevices()
     {
-        return auth()->user()->tokens()->delete();
+        return auth()
+            ->user()
+            ->tokens()
+            ->delete();
     }
 }
