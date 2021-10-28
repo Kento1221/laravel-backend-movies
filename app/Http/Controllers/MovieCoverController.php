@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UpdateMovieCoverRequest;
 use App\Models\Movie;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Facades\Image;
 
 class MovieCoverController extends Controller
 {
@@ -24,15 +25,15 @@ class MovieCoverController extends Controller
             Storage::delete($movie->cover_url);
             $movie->update(['cover_url' => null]);
         }
+        $resizedImage = Image::make($request->file('cover_file'))
+            ->resize(300, 400)->encode('jpg');
+        $fileName = sha1_file($request->file('cover_file')) . '.jpg';
+        $created = Storage::disk('public_covers')->put($fileName, $resizedImage);
 
-        $cover_path = $request
-            ->file('cover_file')
-            ->store('public_covers');
-
-        return $movie
-            ->update([
-                'cover_url' => $cover_path
-            ]);
+        return $created
+            ? $movie->update([
+                'cover_url' => 'public_covers/' . $fileName])
+            : abort(409);
     }
 
     /**
