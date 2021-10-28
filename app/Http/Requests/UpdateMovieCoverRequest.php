@@ -25,7 +25,7 @@ class UpdateMovieCoverRequest extends FormRequest
     {
         return [
             'movie_id' => 'required|int|exists:movies,id',
-            'cover_file' => 'required|file|mimes:jpg,png'
+            'cover_file' => 'required|file|mimes:jpg,jpeg,png'
         ];
     }
 }

@@ -55,7 +55,7 @@ class MovieController extends Controller
         if (isset($request->validated()['genres']))
             $movie->genres()->sync($request->validated()['genres']);
 
-        $result = $movie->update($request->except('genres'));
+        $movie->update($request->except('genres'));
 
         return $movie->load('genres', 'country');
     }
