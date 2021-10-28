@@ -3,8 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
-class UpdateMovieRatingRequest extends FormRequest
+class UserLoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -13,7 +14,7 @@ class UpdateMovieRatingRequest extends FormRequest
      */
     public function authorize()
     {
-        return true;
+        return !Auth::check();
     }
 
     /**
@@ -24,8 +25,8 @@ class UpdateMovieRatingRequest extends FormRequest
     public function rules()
     {
         return [
-            'movie_id' => 'required|exists:movies,id',
-            'value' => 'required|int|between:1,5'
+            'email' => 'required|email',
+            'password' => 'required'
         ];
     }
 }

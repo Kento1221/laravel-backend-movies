@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\MovieCoverController;
 use App\Http\Controllers\MovieRatingController;
@@ -19,17 +20,35 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::apiResource('movies', MovieController::class);
+Route::apiResource('movies', MovieController::class)->only('index', 'show');
 
 Route::post('search', MovieSearchController::class);
 
-Route::post('movie/cover', [MovieCoverController::class, 'update']);
-Route::delete('movie/cover/{movieId}', [MovieCoverController::class, 'destroy']);
-
 Route::get('movie/rating/{movie}', MovieRatingController::class);
-Route::post('movie/rating', [RatingController::class, 'update']);
-Route::delete('movie/rating/{movieId}', [RatingController::class, 'destroy']);
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+//Auth
+Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('auth/register', [AuthController::class, 'register']);
+
+Route::group(['middleware' => 'auth:sanctum'], function () {
+    Route::group(['middleware' => 'adminCheck'], function () {
+        Route::apiResource('movies', MovieController::class)->except('index', 'show');
+        Route::post('movie/cover', [MovieCoverController::class, 'update']);
+        Route::delete('movie/cover/{movieId}', [MovieCoverController::class, 'destroy']);
+    });
+
+    //Rating
+    Route::post('movie/rating', [RatingController::class, 'update']);
+    Route::delete('movie/rating/{rating}', [RatingController::class, 'destroy']);
+
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    //Auth
+    Route::get('auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+    Route::get('auth/logout-all', [AuthController::class, 'logoutAllDevices']);
 });
+
+
+

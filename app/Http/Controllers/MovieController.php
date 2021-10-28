@@ -40,7 +40,7 @@ class MovieController extends Controller
      */
     public function show(Movie $movie)
     {
-        return $movie->load('genres', 'country');
+        return $movie->load('genres', 'country', 'ratings');
     }
 
     /**

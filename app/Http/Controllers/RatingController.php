@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateMovieRatingRequest;
 use App\Models\Movie;
-use Illuminate\Http\Request;
+use App\Models\Rating;
+use Illuminate\Support\Facades\Auth;
 
 class RatingController extends Controller
 {
@@ -18,31 +19,42 @@ class RatingController extends Controller
     {
         $data = [
             'movie_id' => $request->validated()['movie_id'],
-            'user_id' => $request->validated()['user_id'],
-            'value' => $request->validated()['value']
+            'value' => $request->validated()['value'],
+            'user_id' => Auth::id(),
         ];
         $movie = Movie::find($data['movie_id']);
-        $record = $movie->ratings()
-            ->where('user_id', $data['user_id'])
+        $rating = $movie->ratings()
+            ->where('user_id', Auth::id())
             ->where('movie_id', $data['movie_id'])
             ->first();
 
-        if ($record != null)
-            $record->update(['value' => $data['value']]);
-        else
-            $record = $movie->ratings()->create($data);
+        if ($rating != null) {
 
-        return $record;
+            $this->authorize('update', $rating);
+
+            $rating->update(['value' => $data['value']]);
+
+        } else {
+
+            $this->authorize('create', Rating::class);
+
+
+            $rating = $movie->ratings()->create($data);
+        }
+
+        return $rating;
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
+     * @param Rating $rating
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Rating $rating)
     {
-        //TODO: Programme it after integrating Sanctum Authentication.
+        $this->authorize('delete', $rating);
+
+        return $rating->delete();
     }
 }
