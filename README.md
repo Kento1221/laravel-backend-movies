@@ -36,3 +36,7 @@ and thinned out by CRUD controllers.
 | GET       | api/movies/{movie}        | movies.show    |
 | POST      | api/search                |                |
 | GET       | api/user                  |                |
+
+## Project's ERD diagram
+
+<img src="https://postimg.cc/JHymcMHL" width="400" height="450"/>
